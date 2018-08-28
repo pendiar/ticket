@@ -1,0 +1,93 @@
+<html>
+
+<head>
+    <title>注册</title>
+</head>
+
+<body>
+    <h1>
+        <%= title %>
+    </h1>
+    登录名：<input type="text" id="txtUsername" maxlength="20" />
+    <br/>
+    <br/> 密码：
+    <input type="password" id="txtPassword" maxlength="12" />
+    <br/>
+    <br/> 密码：
+    <input type="password" id="txtRePassword" maxlength="12" />
+    <br/>
+    <br/>
+    <input type="button" id="btnSub" value="注册" />
+    <a href="/login">登录</a>
+    <script src="/js/jquery-1.12.4.min.js" type="text/javascript"></script>
+    <script src="/js/md5.min.js" type="text/javascript"></script>
+    <script type="text/javascript">   
+        $(function () {
+            $('#btnSub').on('click', function () {
+                var $txtUsername = $('#txtUsername'),
+                    txtUsernameVal = $.trim($txtUsername.val()),
+                    $txtPassword = $('#txtPassword'),
+                    txtPasswordVal = $.trim($txtPassword.val()),
+                    $txtRePassword = $('#txtRePassword'),
+                    txtRePasswordVal = $.trim($txtRePassword.val())
+
+                if (txtUsernameVal.length == 0) {
+                    alert('用户名不能为空')
+                    return false
+                }
+
+                if (txtPasswordVal.length == 0) {
+                    alert('密码不能为空')
+                    return false
+                }
+
+                if (txtPasswordVal != txtRePasswordVal) {
+                    alert('两次密码不一致')
+                    return false
+                }
+
+                $.ajax({
+                    url: '/reg',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        username: txtUsernameVal,
+                        password: md5.hex(txtRePasswordVal)
+                    },
+                    success: function (res) {
+                        if (res) {
+
+                            var code = parseInt(res.code)
+
+                            switch (code) {
+                                case -1:
+                                    alert('输入有误')
+                                    break
+                                case 0:
+                                    alert('注册成功!')
+                                    location.href = '/login'
+                                    break
+                                case -2:
+                                    alert('用户已注册')
+                                    break;
+                                default:
+                                    alert('注册失败')
+                                    break
+                            }
+                        }
+                        else {
+                            alert('操作失败')
+                        }
+
+                    },
+                    error: function () {
+                        alert('网络错误')
+                    }
+                })
+            })
+        })
+
+    </script>
+</body>
+
+</html>
