@@ -37,7 +37,9 @@ const userinfo = {
 
         return result
     },
-
+    async getById(id) {
+        return __userinfo[id] || null
+    }
 }
 
 module.exports = userinfo

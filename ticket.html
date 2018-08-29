@@ -2,155 +2,162 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>购票</title>
-  <style>
-    ul, li {
-      list-style: none;
-    }
-    ul {
-      overflow: hidden;
-    }
-    li {
-      float: left;
-      width: 10px;
-      height: 10px;
-    }
-    .row {
-      border-right: 1px solid #000;
-      margin-right: 10px;
-      clear: both;
-      width: 20px;
-      height: 20px;
-      line-height: 20px;
-      text-align: center;
-    }
-    .col {
-      border: 1px solid #000;
-    }
-    .set {
-      background: orange;
-    }
-    .buy {
-      background: red;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>购票</title>
+    <style>
+        ul,
+        li {
+            list-style: none;
+        }
+
+        ul {
+            overflow: hidden;
+        }
+
+        li {
+            float: left;
+            width: 10px;
+            height: 10px;
+        }
+
+        .row {
+            border-right: 1px solid #000;
+            margin-right: 10px;
+            clear: both;
+            width: 20px;
+            height: 20px;
+            line-height: 20px;
+            text-align: center;
+        }
+
+        .col {
+            border: 1px solid #000;
+        }
+
+        .set {
+            background: orange;
+        }
+
+        .buy {
+            background: red;
+        }
+    </style>
 </head>
 
 <body>
-  用户名：<input type="text" id="username"><br> 购票数：
-  <input type="number" id="num"><br>
-  <button type="button" id="buy">购票</button>
-  <div class="tickets"></div>
-  <script src="jquery-1.12.4.min.js"></script>
-  <script>
-    (function () {
-      const areas = ['A', 'B', 'C', 'D']
-      const firstRow = 50
-      const add = 2
-      const lastRow = 100
+    用户名：<input type="text" id="username"><br> 购票数：
+    <input type="number" id="num"><br>
+    <button type="button" id="buy">购票</button>
+    <div class="tickets"></div>
+    <script src="jquery-1.12.4.min.js"></script>
+    <script>
+        (function () {
+            const areas = ['A', 'B', 'C', 'D']
+            const firstRow = 50
+            const add = 2
+            const lastRow = 100
 
-      const rownum = (lastRow - firstRow) / add + 1
-      const allSeats = []
-      areas.forEach(area => {
-        const $area = $('<div class="area"><p>' + area + '</p></div>')
-        for (let i = 0; i < rownum; i++) {
-          const $row = $('<ul><li class="row">' + i + '</li></ul>')
-          const num = firstRow + add * i
-          for (let j = 0; j < num; j++) {
-            const $col = $(`<li class="col ${area}-${i}-${j}"></li>`)
-            allSeats.push({
-              area: area,
-              row: i,
-              col: j,
-              set: null,
-              buy: null
+            const rownum = (lastRow - firstRow) / add + 1
+            const allSeats = []
+            areas.forEach(area => {
+                const $area = $('<div class="area"><p>' + area + '</p></div>')
+                for (let i = 0; i < rownum; i++) {
+                    const $row = $('<ul><li class="row">' + i + '</li></ul>')
+                    const num = firstRow + add * i
+                    for (let j = 0; j < num; j++) {
+                        const $col = $(`<li class="col ${area}-${i}-${j}"></li>`)
+                        allSeats.push({
+                            area: area,
+                            row: i,
+                            col: j,
+                            set: null,
+                            buy: null
+                        })
+                        $row.append($col)
+                    }
+                    $area.append($row)
+                }
+                $('.tickets').append($area)
             })
-            $row.append($col)
-          }
-          $area.append($row)
-        }
-        $('.tickets').append($area)
-      })
-      function sameRowSeats (seats, num) {
-        let r = Math.floor(Math.random() * seats.length)
-        const arr = seats.slice(r).concat(seats.slice(0, r))
-        let sseats = []
-        let oseats = []
-        arr.forEach(seat => {
-          const l = sseats.length;
-          if (l >= num) return;
-          var lseat = sseats[l - 1]
-          if (lseat && seat.row === lseat.row && seat.col === lseat.col + 1) {
-            sseats.push(seat)
-          } else {
-            if (l > oseats.length) oseats = sseats
-            sseats = [seat]
-          }
+            function sameRowSeats(seats, num) {
+                let r = Math.floor(Math.random() * seats.length)
+                const arr = seats.slice(r).concat(seats.slice(0, r))
+                let sseats = []
+                let oseats = []
+                arr.forEach(seat => {
+                    const l = sseats.length;
+                    if (l >= num) return;
+                    var lseat = sseats[l - 1]
+                    if (lseat && seat.row === lseat.row && seat.col === lseat.col + 1) {
+                        sseats.push(seat)
+                    } else {
+                        if (l > oseats.length) oseats = sseats
+                        sseats = [seat]
+                    }
+                })
+                if (sseats.length >= num) {
+                    return sseats
+                } else {
+                    return oseats
+                }
+            }
+            function randomSeats(seats, num) {
+                const result = []
+                const n = Math.floor(Math.random() * (seats.length - num + 1))
+                return seats.slice(n, n + num)
+            }
+            window.model = {
+                set(username, num) {
+                    const bought = this.getBuyByUserName(username);
+                    if (bought.length + num > 5) {
+                        alert('你购买的数量超过上限')
+                        return
+                    }
+                    const enable = allSeats.filter(seat => seat.set == null && seat.buy == null)
+                    const sseats = sameRowSeats(enable, num)
+                    sseats.forEach(seat => {
+                        seat.set = username
+                    })
+                    if (sseats.length >= num) {
+                        return sseats
+                    }
+                    return sseats.concat(randomSeats(this.getBuyByUserName(username), num - sseats.length))
+                },
+                getBuyByUserName(username) {
+                    return allSeats.filter(seat => seat.buy === username)
+                }
+            }
+        })()
+        $('#buy').on('click', function () {
+            const username = $.trim($('#username').val());
+            const num = +$('#num').val();
+            if (!username || !num) {
+                alert('输入错误')
+            }
+            const sRet = model.set(username, num)
+            if (!sRet) {
+                return
+            }
+            const seatStr = sRet.map(seat => {
+                const r = `${seat.area}-${seat.row}-${seat.col}`
+                $('.' + r).addClass('set')
+                return r
+            }).join(',')
+            const confirmRet = confirm(`确认购买这些座位：${seatStr}`)
+            sRet.forEach(seat => {
+                const r = `${seat.area}-${seat.row}-${seat.col}`
+                if (confirmRet) {
+                    seat.buy = username
+                    $('.' + r).addClass('buy')
+                } else {
+                    seat.set = null
+                    $('.' + r).removeClass('set')
+                }
+            })
         })
-        if (sseats.length >= num) {
-          return sseats
-        } else {
-          return oseats
-        }
-      }
-      function randomSeats (seats, num) {
-        const result = []
-        const n = Math.floor(Math.random() * (seats.length - num + 1))
-        return seats.slice(n, n + num)
-      }
-      window.model = {
-        set (username, num) {
-          const bought = this.getBuyByUserName(username);
-          if (bought.length + num > 5) {
-            alert('你购买的数量超过上限')
-            return
-          }
-          const enable = allSeats.filter(seat => seat.set == null && seat.buy == null)
-          const sseats = sameRowSeats(enable, num)
-          sseats.forEach(seat => {
-            seat.set = username
-          })
-          if (sseats.length >= num) {
-            return sseats
-          }
-          return sseats.concat(randomSeats(this.getBuyByUserName(username), num - sseats.length))
-        },
-        getBuyByUserName(username) {
-          return allSeats.filter(seat => seat.buy === username)
-        }
-      }
-    })()
-    $('#buy').on('click', function () {
-      const username = $.trim($('#username').val());
-      const num = +$('#num').val();
-      if (!username || !num) {
-        alert('输入错误')
-      }
-      const sRet = model.set(username, num)
-      if (!sRet) {
-        return
-      }
-      const seatStr = sRet.map(seat => {
-        const r = `${seat.area}-${seat.row}-${seat.col}`
-        $('.' + r).addClass('set')
-        return r
-      }).join(',')
-      const confirmRet = confirm(`确认购买这些座位：${seatStr}`)
-      sRet.forEach(seat => {
-        const r = `${seat.area}-${seat.row}-${seat.col}`
-        if (confirmRet) {
-          seat.buy = username
-          $('.' + r).addClass('buy')
-        } else {
-          seat.set = null
-          $('.' + r).removeClass('set')
-        }
-      })
-    })
-  </script>
+    </script>
 </body>
 
 </html>

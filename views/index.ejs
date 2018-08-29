@@ -1,7 +1,48 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>首页</title>
+    <style>
+        ul,
+        li {
+            list-style: none;
+        }
+
+        ul {
+            overflow: hidden;
+        }
+
+        li {
+            float: left;
+            width: 10px;
+            height: 10px;
+        }
+
+        .row {
+            border-right: 1px solid #000;
+            margin-right: 10px;
+            clear: both;
+            width: 20px;
+            height: 20px;
+            line-height: 20px;
+            text-align: center;
+        }
+
+        .col {
+            border: 1px solid #000;
+        }
+
+        .set {
+            background: orange;
+        }
+
+        .buy {
+            background: red;
+        }
+    </style>
 </head>
 
 <body>
@@ -9,52 +50,154 @@
         <%= title %>
     </h1>
 
-    <% if(id != null) {%>
-        <h3>登录用户ID：
-            <%= id %> <a id="btnLogOut" href="javascript:void(0);">注销</a></h3>
-        <% } %>
-            <script src="/js/jquery-1.12.4.min.js" type="text/javascript"></script>
-            <script type="text/javascript">   
-                $(function () {
-                    $('#btnLogOut').on('click', function () {
+    <h3>用户名：<%= username %> <a id="btnLogOut" href="javascript:void(0);">注销</a></h3>
+    <% if (sets) { %>
+        您已经占位：<%= sets %> <button type="button" id="buy">立即支付</button> 剩余时间：<span class="time"></span>
+    <% } else { %>
+        购票数：<input type="number" id="num"><br>
+        <button type="button" id="set">购票</button>
+    <% } %>
+    <div class="tickets">
+        <% areas.forEach(function(area){ %>
+            <div class="area">
+                <p><%= area.area %></p>
+                <% area.rows.forEach(function(row){ %>
+                    <ul>
+                        <li class="row"><%= row.row %></li>
+                        <% row.cols.forEach(function(seat){ %>
+                            <li class="col <%= seat.area %>-<%= seat.row %>-<%= seat.col %> <%= seat.state %>"></li>
+                        <% }); %>
+                    </ul>
+                <% }); %>
+            </div>
+        <% }); %>
+    </div>
+    <script src="/js/jquery-1.12.4.min.js" type="text/javascript"></script>
+    <script type="text/javascript">   
+        $(function () {
+            <% if (sets) { %>
+                var time = <%= time %>
+                var min = Math.floor(time / 60)
+                var sec = time % 60
+                $('.time').text(min + ':' + sec)
+                var timer = setInterval(function(){
+                    time--
+                    if (time < 0) {
+                        clearInterval(timer)
+                        window.location.reload()
+                        return
+                    }
+                    min = Math.floor(time / 60)
+                    sec = time % 60
+                    $('.time').text(min + ':' + sec)
+                }, 1000)
+            <% } %>
+            $('#btnLogOut').on('click', function () {
 
-                        if (!confirm('确认要注销吗?')) {
-                            return
+                if (!confirm('确认要注销吗?')) {
+                    return
+                }
+
+                $.ajax({
+                    url: '/logout',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {},
+                    success: function (res) {
+                        if (res) {
+
+                            var retVal = parseInt(res.code)
+
+                            switch (retVal) {
+                                case 0:
+                                    alert('成功!')
+                                    location.href = '/login'
+                                    break
+                                default:
+                                    alert('失败')
+                                    break
+                            }
+                        }
+                        else {
+                            alert('操作失败')
                         }
 
-                        $.ajax({
-                            url: '/logout',
-                            type: 'POST',
-                            dataType: 'json',
-                            data: {},
-                            success: function (res) {
-                                if (res) {
-
-                                    var retVal = parseInt(res.code)
-
-                                    switch (retVal) {
-                                        case 0:
-                                            alert('成功!')
-                                            location.href = '/login'
-                                            break
-                                        default:
-                                            alert('失败')
-                                            break
-                                    }
-                                }
-                                else {
-                                    alert('操作失败')
-                                }
-
-                            },
-                            error: function () {
-                                alert('网络错误')
-                            }
-                        })
-                    })
+                    },
+                    error: function () {
+                        alert('网络错误')
+                    }
                 })
+            })
+            $('#set').on('click', function () {
+                const num = +$('#num').val();
+                if (!num) {
+                    alert('请输入购票数')
+                    return
+                }
+                $.ajax({
+                    url: '/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: { num: num, type: 'set' },
+                    success: function (res) {
+                        if (res) {
 
-            </script>
+                            var retVal = parseInt(res.code)
+
+                            switch (retVal) {
+                                case 0:
+                                    alert('成功!')
+                                    location.href = '/'
+                                    break
+                                default:
+                                    alert(res.msg || '失败')
+                                    break
+                            }
+                        }
+                        else {
+                            alert('操作失败')
+                        }
+
+                    },
+                    error: function () {
+                        alert('网络错误')
+                    }
+                })
+            })
+            $('#buy').on('click', function () {
+                $.ajax({
+                    url: '/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: { type: 'buy' },
+                    success: function (res) {
+                        if (res) {
+
+                            var retVal = parseInt(res.code)
+
+                            switch (retVal) {
+                                case 0:
+                                    alert('成功!')
+                                    location.href = '/'
+                                    break
+                                default:
+                                    alert(res.msg || '失败')
+                                    break
+                            }
+                        }
+                        else {
+                            alert('操作失败')
+                        }
+
+                    },
+                    error: function () {
+                        alert('网络错误')
+                    }
+                })
+            })
+        })
+
+    </script>
 </body>
 
 </html>
